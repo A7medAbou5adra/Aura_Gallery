@@ -1,0 +1,64 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import Header from '@/components/layout/Header';
+import { AppDispatch, RootState } from '@/lib/redux/store';
+import { fetchArtworks } from '@/lib/redux/slices/artworkSlice';
+
+export default function Gallery() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { artworks, loading, error } = useSelector((state: RootState) => state.artworks);
+
+  useEffect(() => {
+    dispatch(fetchArtworks());
+  }, [dispatch]);
+
+  return (
+    <div className="min-h-screen flex flex-col bg-brand-dark">
+      <Header />
+      <main className="flex-1 container mx-auto px-6 py-12">
+        <div className="mb-12">
+          <h1 className="text-5xl font-serif text-gradient mb-4">The Gallery</h1>
+          <p className="text-gray-400 text-lg max-w-2xl">Browse our exclusive collection of 1-of-1 artworks. Once a piece is acquired, it instantly vanishes from the public gallery, solidifying its unique rarity.</p>
+        </div>
+
+        {loading ? (
+          <div className="text-center py-20 text-brand-gold text-xl animate-pulse">Loading gallery masterpieces...</div>
+        ) : error ? (
+          <div className="text-center py-20 text-red-500 text-xl">{error}</div>
+        ) : artworks.length === 0 ? (
+          <div className="text-center py-20 text-gray-400 text-xl">The gallery is currently empty.</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {artworks.map((artwork) => (
+              <div key={artwork.id} className="group bg-brand-charcoal rounded-sm overflow-hidden border border-gray-800 hover:border-brand-gold transition duration-500 flex flex-col">
+                <div className="h-64 bg-gray-900 relative overflow-hidden flex items-center justify-center">
+                  <div className="absolute inset-0 flex items-center justify-center text-gray-700 font-serif text-2xl group-hover:scale-105 transition duration-700">
+                    <img src={artwork.image_url} alt={artwork.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition duration-700" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                    <span className="absolute">{artwork.title}</span>
+                  </div>
+                  <div className="absolute top-4 right-4 bg-brand-gold text-brand-dark text-xs px-2 py-1 uppercase tracking-widest font-bold z-10">
+                    {artwork.status}
+                  </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col justify-between relative z-20 bg-brand-charcoal">
+                  <div>
+                    <h3 className="text-xl font-serif text-white mb-1 group-hover:text-brand-gold transition">{artwork.title}</h3>
+                    <p className="text-sm text-gray-400 mb-4 uppercase tracking-wider">By {artwork.artist_name}</p>
+                  </div>
+                  <div className="flex items-end justify-between mt-4">
+                    <p className="text-brand-gold text-xl">${Number(artwork.price).toLocaleString()}</p>
+                    <button className="text-xs border border-brand-gold text-brand-gold px-4 py-2 hover:bg-brand-gold hover:text-brand-dark transition uppercase tracking-wider">
+                      Acquire
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}

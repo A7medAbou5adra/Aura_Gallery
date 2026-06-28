@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-charcoal: #1f2937;
+  --color-brand-dark: #0f172a;
+  --color-brand-gold: #d4af37;
+  --color-brand-champagne: #f7e7ce;
+  
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Inter", sans-serif;
+}
+
+:root {
+  --background: var(--color-brand-dark);
+  --foreground: #f8fafc;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+}
+
+/* Base custom classes for luxury feel */
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(to right, var(--color-brand-gold), var(--color-brand-champagne));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
