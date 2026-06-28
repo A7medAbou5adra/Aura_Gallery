@@ -8,6 +8,7 @@ const userRoutes = require('./routes/userRoutes');
 const artworkRoutes = require('./routes/artworkRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const auctionRoutes = require('./routes/auctionRoutes');
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/artworks', artworkRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/auctions', auctionRoutes);
 
 // Basic Route for testing
 app.get('/api/health', (req, res) => {

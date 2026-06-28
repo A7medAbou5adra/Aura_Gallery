@@ -4,11 +4,28 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Header from '@/components/layout/Header';
 import { AppDispatch, RootState } from '@/lib/redux/store';
-import { fetchArtworks } from '@/lib/redux/slices/artworkSlice';
+import { fetchArtworks, purchaseArtwork } from '@/lib/redux/slices/artworkSlice';
+import { useRouter } from 'next/navigation';
 
 export default function Gallery() {
+  const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { artworks, loading, error } = useSelector((state: RootState) => state.artworks);
+  const { user } = useSelector((state: RootState) => state.auth);
+
+  const handlePurchase = (id: number) => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    if (user.role !== 'customer') {
+      alert('Only Collectors can acquire artwork.');
+      return;
+    }
+    dispatch(purchaseArtwork(id)).unwrap().then(() => {
+      alert('Masterpiece acquired successfully!');
+    }).catch(err => alert(err));
+  };
 
   useEffect(() => {
     dispatch(fetchArtworks());
@@ -49,7 +66,7 @@ export default function Gallery() {
                   </div>
                   <div className="flex items-end justify-between mt-4">
                     <p className="text-brand-gold text-xl">${Number(artwork.price).toLocaleString()}</p>
-                    <button className="text-xs border border-brand-gold text-brand-gold px-4 py-2 hover:bg-brand-gold hover:text-brand-dark transition uppercase tracking-wider">
+                    <button onClick={() => handlePurchase(artwork.id)} className="text-xs border border-brand-gold text-brand-gold px-4 py-2 hover:bg-brand-gold hover:text-brand-dark transition uppercase tracking-wider">
                       Acquire
                     </button>
                   </div>

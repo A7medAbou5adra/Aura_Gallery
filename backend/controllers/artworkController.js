@@ -18,7 +18,8 @@ const getArtworks = async (req, res, next) => {
 const getAuctionArtworks = async (req, res, next) => {
   try {
     const result = await db.query(`
-      SELECT a.*, u.name as artist_name 
+      SELECT a.*, u.name as artist_name, 
+             COALESCE((SELECT MAX(bid_amount) FROM bids b WHERE b.artwork_id = a.id), a.price) as current_bid
       FROM artworks a 
       JOIN users u ON a.artist_id = u.id 
       WHERE a.status = 'auction'

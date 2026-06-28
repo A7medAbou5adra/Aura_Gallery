@@ -23,6 +23,15 @@ export const fetchAuctions = createAsyncThunk('auctions/fetchAll', async (_, { r
   }
 });
 
+export const placeBid = createAsyncThunk('auctions/placeBid', async ({ artwork_id, bid_amount }: { artwork_id: number; bid_amount: number }, { rejectWithValue }) => {
+  try {
+    const { data } = await api.post('/auctions/bid', { artwork_id, bid_amount });
+    return data;
+  } catch (err: any) {
+    return rejectWithValue(err.response?.data?.message || 'Failed to place bid');
+  }
+});
+
 const auctionSlice = createSlice({
   name: 'auctions',
   initialState,
@@ -40,6 +49,12 @@ const auctionSlice = createSlice({
       .addCase(fetchAuctions.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      .addCase(placeBid.fulfilled, (state, action) => {
+        const index = state.auctions.findIndex(a => a.id === action.meta.arg.artwork_id);
+        if (index !== -1) {
+          state.auctions[index].current_bid = String(action.meta.arg.bid_amount);
+        }
       });
   },
 });

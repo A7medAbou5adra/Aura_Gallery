@@ -4,11 +4,37 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Header from '@/components/layout/Header';
 import { AppDispatch, RootState } from '@/lib/redux/store';
-import { fetchAuctions } from '@/lib/redux/slices/auctionSlice';
+import { fetchAuctions, placeBid } from '@/lib/redux/slices/auctionSlice';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Auctions() {
+  const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { auctions, loading, error } = useSelector((state: RootState) => state.auctions);
+  const { user } = useSelector((state: RootState) => state.auth);
+  const [bids, setBids] = useState<{[key: number]: string}>({});
+
+  const handleBid = (id: number, currentBid: string) => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    if (user.role !== 'customer') {
+      alert('Only Collectors can place bids.');
+      return;
+    }
+    const amount = Number(bids[id]);
+    if (!amount || amount <= Number(currentBid)) {
+      alert('Your bid must be higher than the current bid.');
+      return;
+    }
+    
+    dispatch(placeBid({ artwork_id: id, bid_amount: amount }))
+      .unwrap()
+      .then(() => alert('Bid placed successfully!'))
+      .catch(err => alert(err));
+  };
 
   useEffect(() => {
     dispatch(fetchAuctions());
@@ -47,12 +73,23 @@ export default function Auctions() {
                   
                   <div className="bg-gray-900 p-4 rounded border border-gray-700 mb-6">
                     <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Current Bid</p>
-                    <p className="text-3xl font-serif text-white">${Number(artwork.price).toLocaleString()}</p>
+                    <p className="text-3xl font-serif text-white">${Number(artwork.current_bid || artwork.price).toLocaleString()}</p>
                   </div>
                   
-                  <button className="w-full py-4 bg-brand-gold text-brand-dark font-bold uppercase tracking-widest text-sm hover:bg-brand-champagne transition shadow-[0_0_15px_rgba(212,175,55,0.4)]">
-                    Place Bid
-                  </button>
+                  <div className="flex space-x-2">
+                    <input 
+                      type="number" 
+                      placeholder="Amount" 
+                      className="w-1/3 bg-brand-dark border border-gray-700 text-white px-3 rounded focus:outline-none focus:border-brand-gold"
+                      value={bids[artwork.id] || ''}
+                      onChange={(e) => setBids({...bids, [artwork.id]: e.target.value})}
+                    />
+                    <button 
+                      onClick={() => handleBid(artwork.id, artwork.current_bid || artwork.price)}
+                      className="flex-1 py-4 bg-brand-gold text-brand-dark font-bold uppercase tracking-widest text-sm hover:bg-brand-champagne transition shadow-[0_0_15px_rgba(212,175,55,0.4)]">
+                      Place Bid
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

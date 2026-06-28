@@ -9,6 +9,8 @@ export interface Artwork {
   description: string;
   price: string;
   image_url: string;
+  current_bid?: string;
+  auction_ends_at?: string;
   status: string;
   created_at: string;
 }
@@ -34,6 +36,15 @@ export const fetchArtworks = createAsyncThunk('artworks/fetchAll', async (_, { r
   }
 });
 
+export const purchaseArtwork = createAsyncThunk('artworks/purchase', async (artwork_id: number, { rejectWithValue }) => {
+  try {
+    const { data } = await api.post('/orders/purchase', { artwork_id });
+    return data;
+  } catch (err: any) {
+    return rejectWithValue(err.response?.data?.message || 'Failed to purchase artwork');
+  }
+});
+
 const artworkSlice = createSlice({
   name: 'artworks',
   initialState,
@@ -51,6 +62,9 @@ const artworkSlice = createSlice({
       .addCase(fetchArtworks.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      .addCase(purchaseArtwork.fulfilled, (state, action) => {
+        state.artworks = state.artworks.filter(a => a.id !== action.meta.arg);
       });
   },
 });
