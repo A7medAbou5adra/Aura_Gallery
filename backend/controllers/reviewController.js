@@ -3,32 +3,31 @@ const db = require('../config/db');
 const createReview = async (req, res, next) => {
   try {
     const customer_id = req.user.id;
-    const { artist_id, artwork_id, rating, comment } = req.body;
+    const { artist_id, rating, comment } = req.body;
 
     if (!rating || rating < 1 || rating > 5) {
       res.status(400);
       return next(new Error('Rating must be between 1 and 5'));
     }
-    if ((!artist_id && !artwork_id) || (artist_id && artwork_id)) {
+    if (!artist_id) {
       res.status(400);
-      return next(new Error('Review must target either an artist OR an artwork'));
+      return next(new Error('Review must target an artist'));
     }
 
     const result = await db.query(
-      'INSERT INTO reviews (customer_id, artist_id, artwork_id, rating, comment) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [customer_id, artist_id || null, artwork_id || null, rating, comment]
+      'INSERT INTO reviews (customer_id, artist_id, rating, comment) VALUES ($1, $2, $3, $4) RETURNING *',
+      [customer_id, artist_id, rating, comment]
     );
 
     // If it's an artist review, update the artist's average rating in users table
-    if (artist_id) {
-      await db.query(`
-        UPDATE users 
-        SET 
-          average_rating = (SELECT AVG(rating) FROM reviews WHERE artist_id = $1),
-          review_count = (SELECT COUNT(id) FROM reviews WHERE artist_id = $1)
-        WHERE id = $1
-      `, [artist_id]);
-    }
+    // Update the artist's average rating in users table
+    await db.query(`
+      UPDATE users 
+      SET 
+        average_rating = (SELECT AVG(rating) FROM reviews WHERE artist_id = $1),
+        review_count = (SELECT COUNT(id) FROM reviews WHERE artist_id = $1)
+      WHERE id = $1
+    `, [artist_id]);
 
     res.status(201).json(result.rows[0]);
   } catch (error) {
