@@ -12,6 +12,7 @@ export default function AdminDashboard() {
   const dispatch = useDispatch<AppDispatch>();
 
   const [pendingPurchases, setPendingPurchases] = useState<any[]>([]);
+  const [artists, setArtists] = useState<any[]>([]);
   const [newArtist, setNewArtist] = useState({ name: '', email: '', password: '', bio: '', custom_order_price: '', profile_image_url: '' });
 
   useEffect(() => {
@@ -20,8 +21,18 @@ export default function AdminDashboard() {
     } else if (user?.role === 'admin') {
       dispatch(fetchArtworks());
       loadPendingPurchases();
+      loadArtists();
     }
   }, [user, dispatch]);
+
+  const loadArtists = async () => {
+    try {
+      const { data } = await api.get('/admin/users');
+      setArtists(data.filter((u: any) => u.role === 'artist'));
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const loadPendingPurchases = async () => {
     try {
@@ -38,8 +49,20 @@ export default function AdminDashboard() {
       await api.post('/admin/artists', newArtist);
       alert('Artist created successfully!');
       setNewArtist({ name: '', email: '', password: '', bio: '', custom_order_price: '', profile_image_url: '' });
+      loadArtists();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Error creating artist');
+    }
+  };
+
+  const handleDeleteArtist = async (id: number) => {
+    if (!confirm('Are you sure you want to permanently delete this artist?')) return;
+    try {
+      await api.delete(`/admin/artists/${id}`);
+      alert('Artist deleted!');
+      loadArtists();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Error deleting artist');
     }
   };
 
@@ -82,6 +105,22 @@ export default function AdminDashboard() {
       <main className="flex-1 container mx-auto px-6 py-12">
         <h1 className="text-4xl font-serif text-gradient mb-8">Admin Command Center</h1>
         
+        {/* Statistics Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-brand-charcoal p-6 rounded border border-gray-800 text-center">
+            <h3 className="text-gray-400 text-sm uppercase tracking-wider mb-2">Registered Artists</h3>
+            <p className="text-3xl font-serif text-brand-gold">{artists.length}</p>
+          </div>
+          <div className="bg-brand-charcoal p-6 rounded border border-gray-800 text-center">
+            <h3 className="text-gray-400 text-sm uppercase tracking-wider mb-2">Pending Purchases</h3>
+            <p className="text-3xl font-serif text-white">{pendingPurchases.length}</p>
+          </div>
+          <div className="bg-brand-charcoal p-6 rounded border border-gray-800 text-center">
+            <h3 className="text-gray-400 text-sm uppercase tracking-wider mb-2">Gallery Size</h3>
+            <p className="text-3xl font-serif text-white">{artworks.length}</p>
+          </div>
+        </div>
+        
         {/* Pending Purchases */}
         <div className="bg-brand-charcoal rounded border border-gray-800 p-6 mb-8">
           <h2 className="text-xl font-serif text-white mb-6 border-b border-gray-700 pb-4">Pending Purchase Approvals</h2>
@@ -90,14 +129,14 @@ export default function AdminDashboard() {
           ) : (
             <div className="space-y-4">
               {pendingPurchases.map(p => (
-                <div key={p.id} className="flex justify-between items-center bg-gray-900 p-4 rounded border border-gray-800">
+                <div key={p.id} className="flex flex-col md:flex-row justify-between items-start md:items-center bg-gray-900 p-4 rounded border border-gray-800 gap-4 md:gap-0">
                   <div>
                     <p className="text-white font-bold">{p.title}</p>
                     <p className="text-sm text-gray-400">Buyer: {p.customer_name} | Amount: ${Number(p.amount).toLocaleString()}</p>
                   </div>
-                  <div className="flex space-x-2">
-                    <button onClick={() => handleApprove(p.id)} className="bg-green-600/20 text-green-500 border border-green-500 px-4 py-2 text-sm uppercase tracking-wider hover:bg-green-600 hover:text-white transition">Approve</button>
-                    <button onClick={() => handleReject(p.id)} className="bg-red-600/20 text-red-500 border border-red-500 px-4 py-2 text-sm uppercase tracking-wider hover:bg-red-600 hover:text-white transition">Reject</button>
+                  <div className="flex space-x-2 w-full md:w-auto">
+                    <button onClick={() => handleApprove(p.id)} className="flex-1 md:flex-none bg-green-600/20 text-green-500 border border-green-500 px-4 py-2 text-sm uppercase tracking-wider hover:bg-green-600 hover:text-white transition text-center">Approve</button>
+                    <button onClick={() => handleReject(p.id)} className="flex-1 md:flex-none bg-red-600/20 text-red-500 border border-red-500 px-4 py-2 text-sm uppercase tracking-wider hover:bg-red-600 hover:text-white transition text-center">Reject</button>
                   </div>
                 </div>
               ))}
@@ -144,6 +183,22 @@ export default function AdminDashboard() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* Artist Management Grid */}
+        <div className="mt-8 bg-brand-charcoal rounded border border-gray-800 p-6">
+          <h2 className="text-xl font-serif text-white mb-6 border-b border-gray-700 pb-4">Artist Roster Management</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {artists.map(artist => (
+              <div key={artist.id} className="bg-gray-900 p-4 rounded border border-gray-800 flex justify-between items-center">
+                <div>
+                  <h3 className="text-white font-bold">{artist.name}</h3>
+                  <p className="text-gray-500 text-xs">{artist.email}</p>
+                </div>
+                <button onClick={() => handleDeleteArtist(artist.id)} className="text-red-500 hover:text-red-400 text-sm border border-red-500/30 px-3 py-1 rounded transition bg-red-500/10 hover:bg-red-500/20 uppercase tracking-widest text-[10px]">Remove</button>
+              </div>
+            ))}
           </div>
         </div>
       </main>

@@ -14,6 +14,27 @@ export default function Auctions() {
   const { auctions, loading, error } = useSelector((state: RootState) => state.auctions);
   const { user } = useSelector((state: RootState) => state.auth);
   const [bids, setBids] = useState<{[key: number]: string}>({});
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTimeLeft = (endTime?: string) => {
+    if (!endTime) return null;
+    const end = new Date(endTime).getTime();
+    const current = now.getTime();
+    const diff = end - current;
+
+    if (diff <= 0) return 'Auction Closed';
+
+    const h = Math.floor(diff / (1000 * 60 * 60));
+    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
 
   const handleBid = (id: number, currentBid: string) => {
     if (!user) {
@@ -71,6 +92,13 @@ export default function Auctions() {
                   <h3 className="text-2xl font-serif text-white mb-1 drop-shadow-md">{artwork.title}</h3>
                   <p className="text-sm text-brand-gold mb-6 uppercase tracking-wider font-semibold">By {artwork.artist_name}</p>
                   
+                  {artwork.auction_ends_at && (
+                    <div className="bg-red-900/20 p-3 rounded border border-red-900/50 mb-4 text-center">
+                      <p className="text-red-400 text-xs uppercase tracking-widest mb-1">Time Remaining</p>
+                      <p className="text-2xl font-serif text-white tracking-widest">{formatTimeLeft(artwork.auction_ends_at)}</p>
+                    </div>
+                  )}
+
                   <div className="bg-gray-900 p-4 rounded border border-gray-700 mb-6">
                     <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Current Bid</p>
                     <p className="text-3xl font-serif text-white">${Number(artwork.current_bid || artwork.price).toLocaleString()}</p>
@@ -86,8 +114,9 @@ export default function Auctions() {
                     />
                     <button 
                       onClick={() => handleBid(artwork.id, artwork.current_bid || artwork.price)}
-                      className="flex-1 py-4 bg-brand-gold text-brand-dark font-bold uppercase tracking-widest text-sm hover:bg-brand-champagne transition shadow-[0_0_15px_rgba(212,175,55,0.4)]">
-                      Place Bid
+                      disabled={formatTimeLeft(artwork.auction_ends_at) === 'Auction Closed'}
+                      className={`flex-1 py-4 font-bold uppercase tracking-widest text-sm transition shadow-[0_0_15px_rgba(212,175,55,0.4)] ${formatTimeLeft(artwork.auction_ends_at) === 'Auction Closed' ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-brand-gold text-brand-dark hover:bg-brand-champagne'}`}>
+                      {formatTimeLeft(artwork.auction_ends_at) === 'Auction Closed' ? 'Closed' : 'Place Bid'}
                     </button>
                   </div>
                 </div>

@@ -55,7 +55,7 @@ const getCustomerOrders = async (req, res, next) => {
       FROM purchases p
       JOIN artworks a ON p.artwork_id = a.id
       JOIN users u ON a.artist_id = u.id
-      WHERE p.customer_id = $1
+      WHERE p.customer_id = $1 AND p.status = 'approved'
       ORDER BY p.purchased_at DESC
     `, [customer_id]);
 

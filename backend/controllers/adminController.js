@@ -29,7 +29,8 @@ const toggleBanUser = async (req, res, next) => {
 const moveArtworkToAuction = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const result = await db.query("UPDATE artworks SET status = 'auction' WHERE id = $1 RETURNING *", [id]);
+    const { auction_ends_at } = req.body;
+    const result = await db.query("UPDATE artworks SET status = 'auction', auction_ends_at = $1 WHERE id = $2 RETURNING *", [auction_ends_at || null, id]);
     res.json(result.rows[0]);
   } catch (error) {
     next(error);
@@ -107,4 +108,30 @@ const updateArtworkStatus = async (req, res, next) => {
   }
 };
 
-module.exports = { getAllUsers, toggleBanUser, moveArtworkToAuction, createArtist, getPendingPurchases, approvePurchase, rejectPurchase, updateArtworkStatus };
+const updateArtist = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { name, bio, custom_order_price, profile_image_url } = req.body;
+    const result = await db.query(
+      'UPDATE users SET name = $1, bio = $2, custom_order_price = $3, profile_image_url = $4 WHERE id = $5 AND role = $6 RETURNING id, name, bio, custom_order_price, profile_image_url',
+      [name, bio, custom_order_price, profile_image_url, id, 'artist']
+    );
+    res.json(result.rows[0]);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteArtist = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    // We might need to delete or reassign their artworks, but for simplicity we'll just delete them.
+    // PostgreSQL CASCADE will handle artworks if configured, or we can just delete. Let's execute delete.
+    await db.query("DELETE FROM users WHERE id = $1 AND role = 'artist'", [id]);
+    res.json({ message: 'Artist deleted' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getAllUsers, toggleBanUser, moveArtworkToAuction, createArtist, getPendingPurchases, approvePurchase, rejectPurchase, updateArtworkStatus, updateArtist, deleteArtist };
