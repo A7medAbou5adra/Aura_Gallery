@@ -8,9 +8,8 @@ import { fetchArtworks } from '@/lib/redux/slices/artworkSlice';
 
 export default function AdminDashboard() {
   const { user } = useSelector((state: RootState) => state.auth);
-  const { artworks } = useSelector((state: RootState) => state.artworks);
-  const dispatch = useDispatch<AppDispatch>();
-
+  
+  const [adminArtworks, setAdminArtworks] = useState<any[]>([]);
   const [pendingPurchases, setPendingPurchases] = useState<any[]>([]);
   const [artists, setArtists] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,11 +26,20 @@ export default function AdminDashboard() {
     if (user && user.role !== 'admin') {
       window.location.href = '/';
     } else if (user?.role === 'admin') {
-      dispatch(fetchArtworks());
+      loadAdminArtworks();
       loadPendingPurchases();
       loadArtists();
     }
-  }, [user, dispatch]);
+  }, [user]);
+
+  const loadAdminArtworks = async () => {
+    try {
+      const { data } = await api.get('/admin/artworks');
+      setAdminArtworks(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const loadArtists = async () => {
     try {
@@ -79,7 +87,7 @@ export default function AdminDashboard() {
       await api.put(`/admin/purchases/${id}/approve`);
       alert('Purchase approved!');
       loadPendingPurchases();
-      dispatch(fetchArtworks());
+      loadAdminArtworks();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Error approving');
     }
@@ -90,6 +98,7 @@ export default function AdminDashboard() {
       await api.put(`/admin/purchases/${id}/reject`);
       alert('Purchase rejected!');
       loadPendingPurchases();
+      loadAdminArtworks();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Error rejecting');
     }
@@ -103,7 +112,7 @@ export default function AdminDashboard() {
     try {
       await api.put(`/admin/artworks/${id}/status`, { status });
       alert('Artwork status updated!');
-      dispatch(fetchArtworks());
+      loadAdminArtworks();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Error updating status');
     }
@@ -122,7 +131,7 @@ export default function AdminDashboard() {
       alert('Artwork moved to auction successfully!');
       setAuctionConfigArtId(null);
       setMaxBidLimit('');
-      dispatch(fetchArtworks());
+      loadAdminArtworks();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Error configuring auction');
     }
@@ -133,7 +142,7 @@ export default function AdminDashboard() {
     try {
       await api.put(`/admin/auctions/${id}/force-close`);
       alert('Auction forcefully closed and auto-resolved!');
-      dispatch(fetchArtworks());
+      loadAdminArtworks();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Error force closing auction');
     }
@@ -204,7 +213,7 @@ export default function AdminDashboard() {
           </div>
           <div className="bg-brand-charcoal p-6 rounded border border-gray-800 text-center">
             <h3 className="text-gray-400 text-sm uppercase tracking-wider mb-2">Gallery Size</h3>
-            <p className="text-3xl font-serif text-white">{artworks.length}</p>
+            <p className="text-3xl font-serif text-white">{adminArtworks.length}</p>
           </div>
         </div>
         
@@ -250,7 +259,7 @@ export default function AdminDashboard() {
           <div className="bg-brand-charcoal rounded border border-gray-800 p-6">
             <h2 className="text-xl font-serif text-white mb-6 border-b border-gray-700 pb-4">Gallery Management</h2>
             <div className="h-96 overflow-y-auto space-y-3 pr-2">
-              {artworks.map(art => (
+              {adminArtworks.map(art => (
                 <div key={art.id} className="flex justify-between items-center bg-gray-900 p-3 rounded border border-gray-800">
                   <div className="flex items-center space-x-3">
                     <img src={art.image_url} alt="thumb" className="w-10 h-10 object-cover" />

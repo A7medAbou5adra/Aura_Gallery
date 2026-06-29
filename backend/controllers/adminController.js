@@ -9,6 +9,15 @@ const getAllUsers = async (req, res, next) => {
   }
 };
 
+const getAllArtworksAdmin = async (req, res, next) => {
+  try {
+    const result = await db.query('SELECT a.*, u.name as artist_name FROM artworks a JOIN users u ON a.artist_id = u.id ORDER BY a.created_at DESC');
+    res.json(result.rows);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const toggleBanUser = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -101,7 +110,13 @@ const updateArtworkStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    const result = await db.query("UPDATE artworks SET status = $1 WHERE id = $2 RETURNING *", [status, id]);
+    let query = "UPDATE artworks SET status = $1";
+    if (status === 'available') {
+      query += ", sold_at = NULL, auction_ends_at = NULL, max_bid_limit = NULL";
+    }
+    query += " WHERE id = $2 RETURNING *";
+    
+    const result = await db.query(query, [status, id]);
     res.json(result.rows[0]);
   } catch (error) {
     next(error);
@@ -157,4 +172,4 @@ const forceCloseAuction = async (req, res, next) => {
   }
 };
 
-module.exports = { getAllUsers, toggleBanUser, moveArtworkToAuction, createArtist, getPendingPurchases, approvePurchase, rejectPurchase, updateArtworkStatus, updateArtist, deleteArtist, forceCloseAuction };
+module.exports = { getAllUsers, getAllArtworksAdmin, toggleBanUser, moveArtworkToAuction, createArtist, getPendingPurchases, approvePurchase, rejectPurchase, updateArtworkStatus, updateArtist, deleteArtist, forceCloseAuction };
