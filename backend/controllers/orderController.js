@@ -11,8 +11,6 @@ const purchaseArtwork = async (req, res, next) => {
 
     if (!artwork || artwork.status !== 'available') throw new Error('Artwork unavailable');
 
-    await db.query('UPDATE artworks SET status = $1, sold_at = NOW() WHERE id = $2', ['sold', artwork_id]);
-    
     const purchaseRes = await db.query(
       'INSERT INTO purchases (customer_id, artwork_id, amount) VALUES ($1, $2, $3) RETURNING *',
       [customer_id, artwork_id, artwork.price]

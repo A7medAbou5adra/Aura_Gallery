@@ -3,7 +3,7 @@ const db = require('../config/db');
 const getArtists = async (req, res, next) => {
   try {
     const result = await db.query(`
-      SELECT u.id, u.name, u.bio, u.custom_order_price,
+      SELECT u.id, u.name, u.bio, u.custom_order_price, u.profile_image_url,
              COALESCE(AVG(r.rating), 0) as average_rating,
              COUNT(r.id) as review_count
       FROM users u
@@ -21,7 +21,7 @@ const getArtists = async (req, res, next) => {
 const getArtistProfile = async (req, res, next) => {
   try {
     const artistId = req.params.id;
-    const artistRes = await db.query('SELECT id, name, bio, custom_order_price FROM users WHERE id = $1 AND role = $2', [artistId, 'artist']);
+    const artistRes = await db.query('SELECT id, name, bio, custom_order_price, profile_image_url FROM users WHERE id = $1 AND role = $2', [artistId, 'artist']);
     
     if (artistRes.rows.length === 0) {
       res.status(404);

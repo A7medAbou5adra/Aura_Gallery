@@ -46,11 +46,16 @@ export default function ArtistProfile() {
       <Header />
       <main className="flex-1 container mx-auto px-6 py-12">
         {/* Profile Header */}
-        <div className="bg-brand-charcoal p-10 rounded-lg border border-gray-800 mb-12 flex flex-col md:flex-row items-center md:items-start justify-between relative overflow-hidden">
+        <div className="bg-brand-charcoal p-10 rounded-lg border border-gray-800 mb-12 flex flex-col md:flex-row items-center justify-between relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-brand-gold to-brand-champagne"></div>
-          <div className="max-w-2xl text-center md:text-left mb-6 md:mb-0 ml-4">
-            <h1 className="text-5xl font-serif text-white mb-4">{profile.name}</h1>
-            <p className="text-gray-400 text-lg leading-relaxed">{profile.bio || "An elusive creator crafting unique masterpieces."}</p>
+          <div className="flex flex-col md:flex-row items-center max-w-2xl text-center md:text-left mb-6 md:mb-0 ml-4">
+            {profile.profile_image_url && (
+              <img src={profile.profile_image_url} alt={profile.name} className="w-32 h-32 rounded-full object-cover border-2 border-brand-gold md:mr-8 mb-4 md:mb-0 shadow-[0_0_15px_rgba(212,175,55,0.4)]" />
+            )}
+            <div>
+              <h1 className="text-5xl font-serif text-white mb-4">{profile.name}</h1>
+              <p className="text-gray-400 text-lg leading-relaxed">{profile.bio || "An elusive creator crafting unique masterpieces."}</p>
+            </div>
           </div>
           <div className="bg-gray-900 p-6 rounded-lg border border-gray-700 min-w-[250px] text-center shadow-lg">
             <h3 className="text-brand-gold uppercase tracking-widest text-sm mb-4">Commission Availability</h3>

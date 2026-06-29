@@ -45,6 +45,15 @@ export const purchaseArtwork = createAsyncThunk('artworks/purchase', async (artw
   }
 });
 
+export const createArtwork = createAsyncThunk('artworks/create', async (artworkData: { title: string, description: string, price: number, image_url: string }, { rejectWithValue }) => {
+  try {
+    const { data } = await api.post('/artworks', artworkData);
+    return data;
+  } catch (err: any) {
+    return rejectWithValue(err.response?.data?.message || 'Failed to create artwork');
+  }
+});
+
 const artworkSlice = createSlice({
   name: 'artworks',
   initialState,
@@ -65,6 +74,9 @@ const artworkSlice = createSlice({
       })
       .addCase(purchaseArtwork.fulfilled, (state, action) => {
         state.artworks = state.artworks.filter(a => a.id !== action.meta.arg);
+      })
+      .addCase(createArtwork.fulfilled, (state, action) => {
+        state.artworks.unshift(action.payload);
       });
   },
 });

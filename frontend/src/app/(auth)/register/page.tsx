@@ -9,14 +9,13 @@ export default function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('customer');
   const [error, setError] = useState('');
   const dispatch = useDispatch();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { data } = await api.post('/auth/register', { name, email, password, role });
+      const { data } = await api.post('/auth/register', { name, email, password, role: 'customer' });
       dispatch(loginSuccess(data));
       window.location.href = '/gallery';
     } catch (err: any) {
@@ -64,17 +63,6 @@ export default function Register() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-            </div>
-            <div>
-              <label className="block text-gray-400 text-sm mb-2 uppercase tracking-wide">I am a...</label>
-              <select 
-                className="w-full bg-gray-900 border border-gray-700 text-white px-4 py-3 rounded focus:outline-none focus:border-brand-gold transition appearance-none"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-              >
-                <option value="customer">Collector (Customer)</option>
-                <option value="artist">Creator (Artist)</option>
-              </select>
             </div>
             <button type="submit" className="w-full py-4 bg-brand-gold text-brand-dark font-bold rounded shadow-[0_0_15px_rgba(212,175,55,0.4)] hover:bg-brand-champagne transition duration-300">
               CREATE ACCOUNT

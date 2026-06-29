@@ -7,6 +7,7 @@ export interface Artist {
   name: string;
   bio: string | null;
   custom_order_price: string | null;
+  profile_image_url?: string;
   average_rating: string;
   review_count: string;
 }
