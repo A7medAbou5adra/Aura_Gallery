@@ -13,6 +13,14 @@ export default function AdminDashboard() {
 
   const [pendingPurchases, setPendingPurchases] = useState<any[]>([]);
   const [artists, setArtists] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  
+  // Auction Config Modal State
+  const [auctionConfigArtId, setAuctionConfigArtId] = useState<number | null>(null);
+  const [auctionHours, setAuctionHours] = useState<number>(24);
+  const [maxBidLimit, setMaxBidLimit] = useState<string>('');
+
   const [newArtist, setNewArtist] = useState({ name: '', email: '', password: '', bio: '', custom_order_price: '', profile_image_url: '' });
 
   useEffect(() => {
@@ -88,26 +96,35 @@ export default function AdminDashboard() {
   };
 
   const handleUpdateArtworkStatus = async (id: number, status: string) => {
+    if (status === 'auction') {
+      setAuctionConfigArtId(id);
+      return;
+    }
     try {
-      if (status === 'auction') {
-        const hours = prompt('How many hours should this auction run?', '24');
-        if (!hours) return;
-        const maxBidStr = prompt('Enter a max bid limit (Optional, leave blank for no limit):', '');
-        
-        const endsAt = new Date();
-        endsAt.setHours(endsAt.getHours() + Number(hours));
-        
-        await api.put(`/admin/artworks/${id}/auction`, { 
-          auction_ends_at: endsAt.toISOString(),
-          max_bid_limit: maxBidStr ? Number(maxBidStr) : null
-        });
-      } else {
-        await api.put(`/admin/artworks/${id}/status`, { status });
-      }
+      await api.put(`/admin/artworks/${id}/status`, { status });
       alert('Artwork status updated!');
       dispatch(fetchArtworks());
     } catch (err: any) {
       alert(err.response?.data?.message || 'Error updating status');
+    }
+  };
+
+  const handleConfirmAuctionLaunch = async () => {
+    if (!auctionConfigArtId) return;
+    try {
+      const endsAt = new Date();
+      endsAt.setHours(endsAt.getHours() + Number(auctionHours));
+      
+      await api.put(`/admin/artworks/${auctionConfigArtId}/auction`, { 
+        auction_ends_at: endsAt.toISOString(),
+        max_bid_limit: maxBidLimit ? Number(maxBidLimit) : null
+      });
+      alert('Artwork moved to auction successfully!');
+      setAuctionConfigArtId(null);
+      setMaxBidLimit('');
+      dispatch(fetchArtworks());
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Error configuring auction');
     }
   };
 
@@ -123,11 +140,56 @@ export default function AdminDashboard() {
   };
 
   if (!user || user.role !== 'admin') return null;
+  if (error) return <div className="text-red-500 min-h-screen bg-brand-dark p-10">{error}</div>;
 
   return (
     <div className="min-h-screen flex flex-col bg-brand-dark">
       <Header />
-      <main className="flex-1 container mx-auto px-6 py-12">
+      <main className="flex-1 container mx-auto px-6 py-12 relative">
+        
+        {/* Auction Configuration Modal */}
+        {auctionConfigArtId && (
+          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+            <div className="bg-brand-charcoal p-8 rounded-lg border border-brand-gold w-full max-w-md shadow-2xl relative">
+              <h2 className="text-2xl font-serif text-white mb-6 border-b border-gray-800 pb-4">Configure Auction</h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-gray-400 text-xs uppercase tracking-widest mb-2">Duration (Hours)</label>
+                  <input 
+                    type="number" 
+                    min="1"
+                    className="w-full bg-gray-900 border border-gray-700 text-white px-4 py-3 rounded focus:outline-none focus:border-brand-gold"
+                    value={auctionHours}
+                    onChange={(e) => setAuctionHours(Number(e.target.value))}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-gray-400 text-xs uppercase tracking-widest mb-2">Max Bid Limit ($) - Optional</label>
+                  <input 
+                    type="number" 
+                    placeholder="e.g. 50000"
+                    className="w-full bg-gray-900 border border-gray-700 text-white px-4 py-3 rounded focus:outline-none focus:border-brand-gold"
+                    value={maxBidLimit}
+                    onChange={(e) => setMaxBidLimit(e.target.value)}
+                  />
+                  <p className="text-gray-500 text-[10px] mt-1 italic">Prevents trolls from bidding above this limit.</p>
+                </div>
+
+                <div className="flex space-x-4 pt-4 mt-6">
+                  <button onClick={handleConfirmAuctionLaunch} className="flex-1 py-3 bg-brand-gold text-brand-dark font-bold uppercase tracking-widest hover:bg-brand-champagne transition rounded shadow-[0_0_15px_rgba(212,175,55,0.3)]">
+                    Launch Auction
+                  </button>
+                  <button onClick={() => setAuctionConfigArtId(null)} className="flex-1 py-3 bg-gray-800 text-gray-300 font-bold uppercase tracking-widest hover:bg-gray-700 transition rounded">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <h1 className="text-4xl font-serif text-gradient mb-8">Admin Command Center</h1>
         
         {/* Statistics Overview */}
