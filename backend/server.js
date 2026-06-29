@@ -15,13 +15,18 @@ dotenv.config();
 
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const xss = require('xss-clean');
+
 
 const app = express();
 
+// Middlewares
+app.use(cors());
+app.use(express.json());
+
 // Security Middlewares
-app.use(helmet());
-app.use(xss());
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+}));
 
 // Rate limiting for API routes
 const limiter = rateLimit({
@@ -31,9 +36,7 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
-// Middlewares
-app.use(cors());
-app.use(express.json());
+
 
 // Routes
 app.use('/api/auth', authRoutes);
