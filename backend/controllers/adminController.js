@@ -29,8 +29,8 @@ const toggleBanUser = async (req, res, next) => {
 const moveArtworkToAuction = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { auction_ends_at } = req.body;
-    const result = await db.query("UPDATE artworks SET status = 'auction', auction_ends_at = $1 WHERE id = $2 RETURNING *", [auction_ends_at || null, id]);
+    const { auction_ends_at, max_bid_limit } = req.body;
+    const result = await db.query("UPDATE artworks SET status = 'auction', auction_ends_at = $1, max_bid_limit = $2 WHERE id = $3 RETURNING *", [auction_ends_at || null, max_bid_limit || null, id]);
     res.json(result.rows[0]);
   } catch (error) {
     next(error);
@@ -134,4 +134,27 @@ const deleteArtist = async (req, res, next) => {
   }
 };
 
-module.exports = { getAllUsers, toggleBanUser, moveArtworkToAuction, createArtist, getPendingPurchases, approvePurchase, rejectPurchase, updateArtworkStatus, updateArtist, deleteArtist };
+const forceCloseAuction = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    
+    await db.query('BEGIN');
+    const bidRes = await db.query('SELECT bidder_id, bid_amount FROM bids WHERE artwork_id = $1 ORDER BY bid_amount DESC LIMIT 1', [id]);
+    
+    if (bidRes.rows.length > 0) {
+      const topBid = bidRes.rows[0];
+      await db.query("INSERT INTO purchases (customer_id, artwork_id, amount, status) VALUES ($1, $2, $3, 'approved')", [topBid.bidder_id, id, topBid.bid_amount]);
+      await db.query("UPDATE artworks SET status = 'sold', sold_at = NOW(), auction_ends_at = NOW() WHERE id = $1", [id]);
+    } else {
+      await db.query("UPDATE artworks SET status = 'available', auction_ends_at = NULL WHERE id = $1", [id]);
+    }
+    await db.query('COMMIT');
+    
+    res.json({ message: 'Auction force closed successfully.' });
+  } catch (error) {
+    await db.query('ROLLBACK');
+    next(error);
+  }
+};
+
+module.exports = { getAllUsers, toggleBanUser, moveArtworkToAuction, createArtist, getPendingPurchases, approvePurchase, rejectPurchase, updateArtworkStatus, updateArtist, deleteArtist, forceCloseAuction };

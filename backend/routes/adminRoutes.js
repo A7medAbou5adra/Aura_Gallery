@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAllUsers, toggleBanUser, moveArtworkToAuction, createArtist, getPendingPurchases, approvePurchase, rejectPurchase, updateArtworkStatus, updateArtist, deleteArtist } = require('../controllers/adminController');
+const { getAllUsers, toggleBanUser, moveArtworkToAuction, createArtist, getPendingPurchases, approvePurchase, rejectPurchase, updateArtworkStatus, updateArtist, deleteArtist, forceCloseAuction } = require('../controllers/adminController');
 const { protect } = require('../middlewares/authMiddleware');
 const { requireRole } = require('../middlewares/roleMiddleware');
 
@@ -10,6 +10,7 @@ router.use(protect, requireRole('admin'));
 router.get('/users', getAllUsers);
 router.put('/users/:id/ban', toggleBanUser);
 router.put('/artworks/:id/auction', moveArtworkToAuction);
+router.put('/auctions/:id/force-close', forceCloseAuction);
 router.post('/artists', createArtist);
 router.put('/artists/:id', updateArtist);
 router.delete('/artists/:id', deleteArtist);

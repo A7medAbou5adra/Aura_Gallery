@@ -89,11 +89,36 @@ export default function AdminDashboard() {
 
   const handleUpdateArtworkStatus = async (id: number, status: string) => {
     try {
-      await api.put(`/admin/artworks/${id}/status`, { status });
+      if (status === 'auction') {
+        const hours = prompt('How many hours should this auction run?', '24');
+        if (!hours) return;
+        const maxBidStr = prompt('Enter a max bid limit (Optional, leave blank for no limit):', '');
+        
+        const endsAt = new Date();
+        endsAt.setHours(endsAt.getHours() + Number(hours));
+        
+        await api.put(`/admin/artworks/${id}/auction`, { 
+          auction_ends_at: endsAt.toISOString(),
+          max_bid_limit: maxBidStr ? Number(maxBidStr) : null
+        });
+      } else {
+        await api.put(`/admin/artworks/${id}/status`, { status });
+      }
       alert('Artwork status updated!');
       dispatch(fetchArtworks());
     } catch (err: any) {
       alert(err.response?.data?.message || 'Error updating status');
+    }
+  };
+
+  const handleForceCloseAuction = async (id: number) => {
+    if (!confirm('Are you sure you want to FORCE CLOSE this auction now?')) return;
+    try {
+      await api.put(`/admin/auctions/${id}/force-close`);
+      alert('Auction forcefully closed and auto-resolved!');
+      dispatch(fetchArtworks());
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Error force closing auction');
     }
   };
 
@@ -171,15 +196,22 @@ export default function AdminDashboard() {
                       <p className="text-white text-sm font-bold truncate w-32">{art.title}</p>
                     </div>
                   </div>
-                  <select 
-                    value={art.status}
-                    onChange={(e) => handleUpdateArtworkStatus(art.id, e.target.value)}
-                    className="bg-brand-dark border border-gray-700 text-brand-gold text-xs px-2 py-1 rounded focus:outline-none"
-                  >
-                    <option value="available">Available</option>
-                    <option value="sold">Sold</option>
-                    <option value="auction">Auction</option>
-                  </select>
+                  <div className="flex space-x-2">
+                    {art.status === 'auction' && (
+                      <button onClick={() => handleForceCloseAuction(art.id)} className="bg-red-900/40 text-red-400 border border-red-500/50 px-2 py-1 text-[10px] uppercase tracking-widest hover:bg-red-600 hover:text-white transition rounded">
+                        Force Close
+                      </button>
+                    )}
+                    <select 
+                      value={art.status}
+                      onChange={(e) => handleUpdateArtworkStatus(art.id, e.target.value)}
+                      className="bg-brand-dark border border-gray-700 text-brand-gold text-xs px-2 py-1 rounded focus:outline-none"
+                    >
+                      <option value="available">Available</option>
+                      <option value="sold">Sold</option>
+                      <option value="auction">Auction</option>
+                    </select>
+                  </div>
                 </div>
               ))}
             </div>

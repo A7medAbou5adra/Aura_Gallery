@@ -27,6 +27,10 @@ const placeBid = async (req, res, next) => {
       throw new Error(`Your bid must be higher than the current price of $${currentHighest}`);
     }
 
+    if (artwork.max_bid_limit && parseFloat(bid_amount) > parseFloat(artwork.max_bid_limit)) {
+      throw new Error(`Anti-Sabotage: Bid exceeds the maximum allowed limit of $${artwork.max_bid_limit}`);
+    }
+
     // Place bid
     const result = await db.query(
       'INSERT INTO bids (artwork_id, bidder_id, bid_amount) VALUES ($1, $2, $3) RETURNING *',

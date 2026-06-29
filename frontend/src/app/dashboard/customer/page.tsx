@@ -5,15 +5,43 @@ import { useDispatch, useSelector } from 'react-redux';
 import Header from '@/components/layout/Header';
 import { AppDispatch, RootState } from '@/lib/redux/store';
 import { fetchCustomerDashboard } from '@/lib/redux/slices/orderSlice';
+import api from '@/lib/axios';
+import { useState } from 'react';
 
 export default function CustomerDashboard() {
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.auth);
   const { purchases, customerOrders, loading } = useSelector((state: RootState) => state.orders);
+  
+  const [profile, setProfile] = useState<any>(null);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileImage, setProfileImage] = useState('');
+  
+  const loadProfile = async () => {
+    try {
+      const { data } = await api.get('/users/profile');
+      setProfile(data);
+      setProfileImage(data.profile_image_url || '');
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const saveProfile = async () => {
+    try {
+      await api.put('/users/profile', { profile_image_url: profileImage });
+      alert('Profile updated!');
+      setEditingProfile(false);
+      loadProfile();
+    } catch (err) {
+      alert('Error updating profile');
+    }
+  };
 
   useEffect(() => {
     if (user?.role === 'customer') {
       dispatch(fetchCustomerDashboard());
+      loadProfile();
     } else if (user) {
       window.location.href = '/';
     }
@@ -25,9 +53,53 @@ export default function CustomerDashboard() {
     <div className="min-h-screen flex flex-col bg-brand-dark">
       <Header />
       <main className="flex-1 container mx-auto px-6 py-12">
-        <div className="mb-12">
-          <h1 className="text-4xl font-serif text-white mb-2">Welcome, {user.name}</h1>
-          <p className="text-brand-gold uppercase tracking-widest text-sm">Collector Dashboard</p>
+        <div className="mb-12 bg-brand-charcoal p-8 rounded-lg border border-gray-800 shadow-2xl flex flex-col md:flex-row items-center md:items-start justify-between relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-brand-gold to-brand-champagne"></div>
+          
+          <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-8 z-10 w-full">
+            <div className="relative group">
+              {profile?.profile_image_url ? (
+                <img src={profile.profile_image_url} alt={user.name} className="w-32 h-32 rounded-full object-cover border-2 border-brand-gold shadow-[0_0_15px_rgba(212,175,55,0.4)]" />
+              ) : (
+                <div className="w-32 h-32 rounded-full bg-gray-900 border-2 border-brand-gold flex items-center justify-center text-brand-gold text-4xl font-serif">
+                  {user.name[0]}
+                </div>
+              )}
+              {editingProfile && (
+                <div className="absolute inset-0 bg-black/80 rounded-full flex items-center justify-center">
+                  <span className="text-[10px] text-white uppercase tracking-widest text-center px-2">Image URL below</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex-1 text-center md:text-left">
+              <h1 className="text-4xl font-serif text-white mb-2">{user.name}</h1>
+              <p className="text-brand-gold uppercase tracking-widest text-sm mb-6">Collector</p>
+              
+              {/* Gamification Badges */}
+              <div className="flex flex-wrap justify-center md:justify-start gap-3 mb-6">
+                {profile?.badges && profile.badges.map((badge: string, i: number) => (
+                  <span key={i} className="bg-brand-dark/50 border border-brand-gold/50 text-brand-gold px-3 py-1 text-xs uppercase tracking-widest rounded-full shadow-[0_0_10px_rgba(212,175,55,0.2)]">
+                    🏆 {badge}
+                  </span>
+                ))}
+              </div>
+
+              {editingProfile ? (
+                <div className="space-y-3 max-w-md mx-auto md:mx-0">
+                  <input type="text" placeholder="Profile Image URL" className="w-full bg-gray-900 border border-gray-700 text-white px-3 py-2 rounded text-sm focus:border-brand-gold focus:outline-none" value={profileImage} onChange={e => setProfileImage(e.target.value)} />
+                  <div className="flex space-x-2">
+                    <button onClick={saveProfile} className="flex-1 bg-brand-gold text-brand-dark py-2 text-xs font-bold uppercase tracking-widest rounded hover:bg-brand-champagne transition">Save</button>
+                    <button onClick={() => setEditingProfile(false)} className="flex-1 bg-gray-800 text-gray-300 py-2 text-xs font-bold uppercase tracking-widest rounded hover:bg-gray-700 transition">Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <button onClick={() => setEditingProfile(true)} className="text-xs uppercase tracking-widest text-gray-400 hover:text-brand-gold border border-gray-700 px-4 py-2 rounded transition">
+                  Edit Profile
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
         {loading ? (
@@ -56,8 +128,13 @@ export default function CustomerDashboard() {
             </section>
 
             {/* Custom Orders Status */}
-            <section>
-              <h2 className="text-2xl font-serif text-white border-b border-gray-800 pb-4 mb-6">Custom Commissions</h2>
+            <section className="mt-16">
+              <div className="bg-gradient-to-r from-gray-900 to-brand-charcoal p-8 rounded-lg border-l-4 border-l-brand-gold shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-5">
+                  <span className="text-9xl font-serif">🛠️</span>
+                </div>
+                <h2 className="text-3xl font-serif text-white mb-2 relative z-10">Commissioned Masterpieces</h2>
+                <p className="text-gray-400 text-sm uppercase tracking-widest mb-8 relative z-10">Track your exclusive custom orders</p>
               {customerOrders.length === 0 ? (
                 <p className="text-gray-500 italic">No active custom orders.</p>
               ) : (
@@ -88,6 +165,7 @@ export default function CustomerDashboard() {
                   </table>
                 </div>
               )}
+              </div>
             </section>
           </div>
         )}
