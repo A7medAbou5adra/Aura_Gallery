@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import { AppDispatch, RootState } from '@/lib/redux/store';
 import { fetchArtistProfile, clearCurrentProfile } from '@/lib/redux/slices/artistSlice';
+import { getImageUrl } from '@/utils/getImageUrl';
 import api from '@/lib/axios';
 
 export default function ArtistProfile() {
@@ -79,7 +80,7 @@ export default function ArtistProfile() {
           <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-brand-gold to-brand-champagne"></div>
           <div className="flex flex-col md:flex-row items-center max-w-2xl text-center md:text-left mb-6 md:mb-0 ml-4">
             {profile.profile_image_url && (
-              <img src={profile.profile_image_url} alt={profile.name} className="w-32 h-32 rounded-full object-cover border-2 border-brand-gold md:mr-8 mb-4 md:mb-0 shadow-[0_0_15px_rgba(212,175,55,0.4)]" />
+              <img src={getImageUrl(profile.profile_image_url)} alt={profile.name} className="w-32 h-32 rounded-full object-cover border-2 border-brand-gold md:mr-8 mb-4 md:mb-0 shadow-[0_0_15px_rgba(212,175,55,0.4)]" />
             )}
             <div>
               <h1 className="text-5xl font-serif text-white mb-4">{profile.name}</h1>
@@ -111,7 +112,7 @@ export default function ArtistProfile() {
               {availableArtworks.map((artwork) => (
                 <div key={artwork.id} className="group bg-brand-charcoal rounded-sm overflow-hidden border border-gray-800 hover:border-brand-gold transition duration-500">
                   <div className="h-64 bg-gray-900 relative overflow-hidden flex items-center justify-center">
-                    <img src={artwork.image_url} alt={artwork.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition duration-700" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                    <img src={getImageUrl(artwork.image_url)} alt={artwork.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition duration-700" onError={(e) => (e.currentTarget.style.display = 'none')} />
                     <span className="absolute text-gray-700 font-serif text-2xl opacity-50 group-hover:opacity-0 transition">{artwork.title}</span>
                   </div>
                   <div className="p-6 relative z-20 bg-brand-charcoal">
@@ -137,7 +138,7 @@ export default function ArtistProfile() {
               {soldArtworks.map((artwork) => (
                 <div key={artwork.id} className="bg-gray-900 rounded-sm overflow-hidden border border-gray-800 opacity-60 hover:opacity-100 transition">
                   <div className="h-40 bg-black relative flex items-center justify-center">
-                    <img src={artwork.image_url} alt={artwork.title} className="w-full h-full object-cover opacity-40 grayscale" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                    <img src={getImageUrl(artwork.image_url)} alt={artwork.title} className="w-full h-full object-cover opacity-40 grayscale" onError={(e) => (e.currentTarget.style.display = 'none')} />
                     <div className="absolute inset-0 flex items-center justify-center">
                       <span className="bg-red-900/80 text-white text-[10px] px-2 py-1 uppercase tracking-widest font-bold">Sold</span>
                     </div>
@@ -200,7 +201,7 @@ export default function ArtistProfile() {
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex items-center space-x-3">
                         {review.customer_image ? (
-                          <img src={review.customer_image} alt={review.customer_name} className="w-10 h-10 rounded-full object-cover border border-brand-gold" />
+                          <img src={getImageUrl(review.customer_image)} alt={review.customer_name} className="w-10 h-10 rounded-full object-cover border border-brand-gold" />
                         ) : (
                           <div className="w-10 h-10 rounded-full bg-brand-charcoal border border-brand-gold flex items-center justify-center text-brand-gold font-bold">
                             {review.customer_name[0]}

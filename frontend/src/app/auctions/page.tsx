@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Header from '@/components/layout/Header';
+import { getImageUrl } from '@/utils/getImageUrl';
 import { AppDispatch, RootState } from '@/lib/redux/store';
 import { fetchAuctions, placeBid } from '@/lib/redux/slices/auctionSlice';
 import { useState } from 'react';
@@ -85,7 +86,7 @@ export default function Auctions() {
                   Live Auction
                 </div>
                 <div className="h-80 bg-gray-900 relative overflow-hidden flex items-center justify-center">
-                  <img src={artwork.image_url} alt={artwork.title} className="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition duration-1000" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                  <img src={getImageUrl(artwork.image_url)} alt={artwork.title} className="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition duration-1000" onError={(e) => (e.currentTarget.style.display = 'none')} />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-10"></div>
                 </div>
                 <div className="p-6 relative z-20 bg-brand-charcoal border-t border-gray-800">

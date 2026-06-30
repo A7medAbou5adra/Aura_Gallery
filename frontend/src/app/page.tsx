@@ -2,6 +2,8 @@
 
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import Link from 'next/link';
+import { getImageUrl } from '@/utils/getImageUrl';
 import Header from '@/components/layout/Header';
 import { AppDispatch, RootState } from '@/lib/redux/store';
 import { fetchArtworks } from '@/lib/redux/slices/artworkSlice';
@@ -57,7 +59,7 @@ export default function HomePage() {
                 {displayArtworks.map((artwork) => (
                   <div key={artwork.id} className="group bg-brand-charcoal rounded-lg overflow-hidden border border-gray-800 hover:border-brand-gold transition duration-500">
                     <div className="h-80 bg-gray-900 relative overflow-hidden flex items-center justify-center">
-                       <img src={artwork.image_url} alt={artwork.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition duration-700" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                       <img src={getImageUrl(artwork.image_url)} alt={artwork.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition duration-700" onError={(e) => (e.currentTarget.style.display = 'none')} />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
                       <div className="absolute bottom-4 left-4 z-20">
                         <span className="bg-brand-gold text-brand-dark text-xs px-2 py-1 uppercase tracking-widest font-bold">Available</span>

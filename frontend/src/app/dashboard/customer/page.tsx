@@ -7,6 +7,7 @@ import { AppDispatch, RootState } from '@/lib/redux/store';
 import { fetchCustomerDashboard } from '@/lib/redux/slices/orderSlice';
 import api from '@/lib/axios';
 import { useState } from 'react';
+import { getImageUrl } from '@/utils/getImageUrl';
 
 export default function CustomerDashboard() {
   const dispatch = useDispatch<AppDispatch>();
@@ -66,7 +67,7 @@ export default function CustomerDashboard() {
               {profileImageFile ? (
                 <img src={URL.createObjectURL(profileImageFile)} alt="preview" className="w-32 h-32 rounded-full object-cover border-2 border-brand-gold shadow-[0_0_15px_rgba(212,175,55,0.4)]" />
               ) : profile?.profile_image_url ? (
-                <img src={profile.profile_image_url} alt={user.name} className="w-32 h-32 rounded-full object-cover border-2 border-brand-gold shadow-[0_0_15px_rgba(212,175,55,0.4)]" />
+                <img src={getImageUrl(profile.profile_image_url)} alt={user.name} className="w-32 h-32 rounded-full object-cover border-2 border-brand-gold shadow-[0_0_15px_rgba(212,175,55,0.4)]" />
               ) : (
                 <div className="w-32 h-32 rounded-full bg-gray-900 border-2 border-brand-gold flex items-center justify-center text-brand-gold text-4xl font-serif">
                   {user.name[0]}
@@ -123,7 +124,7 @@ export default function CustomerDashboard() {
                   {purchases.map((p) => (
                     <div key={p.id} className="bg-brand-charcoal border border-brand-gold/30 rounded p-4">
                       <div className="h-40 bg-gray-900 mb-4 overflow-hidden rounded relative">
-                         <img src={p.image_url} alt={p.title} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                       <img src={getImageUrl(p.image_url)} alt={p.title} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} />
                          <div className="absolute bottom-2 right-2 bg-brand-dark/80 text-brand-gold text-[10px] px-2 py-1 uppercase tracking-widest border border-brand-gold/50">Owned</div>
                       </div>
                       <h3 className="font-serif text-white text-lg truncate">{p.title}</h3>

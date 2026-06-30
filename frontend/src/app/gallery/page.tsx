@@ -4,7 +4,8 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Header from '@/components/layout/Header';
 import { AppDispatch, RootState } from '@/lib/redux/store';
-import { fetchArtworks, purchaseArtwork } from '@/lib/redux/slices/artworkSlice';
+import { fetchArtworks, purchaseArtwork, Artwork } from '@/lib/redux/slices/artworkSlice';
+import { getImageUrl } from '@/utils/getImageUrl';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -54,7 +55,7 @@ export default function Gallery() {
               <div key={artwork.id} className="group bg-brand-charcoal rounded-sm overflow-hidden border border-gray-800 hover:border-brand-gold transition duration-500 flex flex-col">
                 <div className="h-64 bg-gray-900 relative overflow-hidden flex items-center justify-center cursor-pointer" onClick={() => setSelectedArtwork(artwork)}>
                   <div className="absolute inset-0 flex items-center justify-center text-gray-700 font-serif text-2xl group-hover:scale-105 transition duration-700">
-                    <img src={artwork.image_url} alt={artwork.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition duration-700" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                    <img src={getImageUrl(artwork.image_url)} alt={artwork.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition duration-700" onError={(e) => (e.currentTarget.style.display = 'none')} />
                     <span className="absolute">{artwork.title}</span>
                   </div>
                   <div className="absolute top-4 right-4 bg-brand-gold text-brand-dark text-xs px-2 py-1 uppercase tracking-widest font-bold z-10">
@@ -82,7 +83,7 @@ export default function Gallery() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
             <div className="bg-brand-charcoal border border-brand-gold w-full max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col md:flex-row shadow-[0_0_30px_rgba(212,175,55,0.2)]">
               <div className="w-full md:w-1/2 h-64 md:h-auto relative bg-gray-900">
-                <img src={selectedArtwork.image_url} alt={selectedArtwork.title} className="w-full h-full object-cover" />
+                <img src={getImageUrl(selectedArtwork.image_url)} alt={selectedArtwork.title} className="w-full h-full object-cover" />
               </div>
               <div className="w-full md:w-1/2 p-8 flex flex-col justify-between">
                 <div>

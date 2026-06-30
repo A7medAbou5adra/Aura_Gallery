@@ -5,6 +5,7 @@ import { RootState, AppDispatch } from '@/lib/redux/store';
 import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
 import { fetchArtworks } from '@/lib/redux/slices/artworkSlice';
+import { getImageUrl } from '@/utils/getImageUrl';
 
 export default function AdminDashboard() {
   const { user } = useSelector((state: RootState) => state.auth);
@@ -282,7 +283,7 @@ export default function AdminDashboard() {
               {adminArtworks.map(art => (
                 <div key={art.id} className="flex justify-between items-center bg-gray-900 p-3 rounded border border-gray-800">
                   <div className="flex items-center space-x-3">
-                    <img src={art.image_url} alt="thumb" className="w-10 h-10 object-cover" />
+                    <img src={getImageUrl(art.image_url)} alt="thumb" className="w-10 h-10 object-cover" />
                     <div>
                       <p className="text-white text-sm font-bold truncate w-32">{art.title}</p>
                     </div>

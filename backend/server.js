@@ -27,8 +27,6 @@ const rateLimit = require('express-rate-limit');
 
 const app = express();
 
-// Serve uploads statically
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Middlewares
 app.use(cors());
@@ -38,6 +36,9 @@ app.use(express.json());
 app.use(helmet({
   crossOriginResourcePolicy: false,
 }));
+
+// Serve uploads statically (AFTER CORS/Helmet)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Rate limiting for API routes
 const limiter = rateLimit({
