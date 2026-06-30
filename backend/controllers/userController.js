@@ -75,7 +75,11 @@ const getCollectorProfile = async (req, res, next) => {
 const updateProfile = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const { profile_image_url, showcase_artworks } = req.body;
+    const { showcase_artworks } = req.body;
+    let profile_image_url = req.body.profile_image_url;
+    if (req.file) {
+      profile_image_url = '/uploads/' + req.file.filename;
+    }
 
     const result = await db.query(
       'UPDATE users SET profile_image_url = COALESCE($1, profile_image_url), showcase_artworks = COALESCE($2, showcase_artworks) WHERE id = $3 RETURNING id, name, profile_image_url, showcase_artworks, badges',

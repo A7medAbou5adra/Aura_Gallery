@@ -48,11 +48,15 @@ const moveArtworkToAuction = async (req, res, next) => {
 
 const createArtist = async (req, res, next) => {
   try {
-    const { name, email, password, bio, custom_order_price, profile_image_url } = req.body;
+    const { name, email, password, bio, custom_order_price } = req.body;
+    let profile_image_url = req.body.profile_image_url;
+    if (req.file) {
+      profile_image_url = '/uploads/' + req.file.filename;
+    }
     const bcrypt = require('bcrypt');
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    
+
     const result = await db.query(
       'INSERT INTO users (name, email, password, role, bio, custom_order_price, profile_image_url) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, name, email, role',
       [name, email, hashedPassword, 'artist', bio, custom_order_price, profile_image_url]
@@ -126,9 +130,13 @@ const updateArtworkStatus = async (req, res, next) => {
 const updateArtist = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { name, bio, custom_order_price, profile_image_url } = req.body;
+    const { name, bio, custom_order_price } = req.body;
+    let profile_image_url = req.body.profile_image_url;
+    if (req.file) {
+      profile_image_url = '/uploads/' + req.file.filename;
+    }
     const result = await db.query(
-      'UPDATE users SET name = $1, bio = $2, custom_order_price = $3, profile_image_url = $4 WHERE id = $5 AND role = $6 RETURNING id, name, bio, custom_order_price, profile_image_url',
+      'UPDATE users SET name = $1, bio = $2, custom_order_price = $3, profile_image_url = COALESCE($4, profile_image_url) WHERE id = $5 AND role = $6 RETURNING id, name, bio, custom_order_price, profile_image_url',
       [name, bio, custom_order_price, profile_image_url, id, 'artist']
     );
     res.json(result.rows[0]);

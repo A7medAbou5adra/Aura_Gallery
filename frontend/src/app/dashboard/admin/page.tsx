@@ -20,7 +20,8 @@ export default function AdminDashboard() {
   const [auctionHours, setAuctionHours] = useState<number>(24);
   const [maxBidLimit, setMaxBidLimit] = useState<string>('');
 
-  const [newArtist, setNewArtist] = useState({ name: '', email: '', password: '', bio: '', custom_order_price: '', profile_image_url: '' });
+  const [newArtist, setNewArtist] = useState({ name: '', email: '', password: '', bio: '', custom_order_price: '' });
+  const [artistImageFile, setArtistImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (user && user.role !== 'admin') {
@@ -62,9 +63,20 @@ export default function AdminDashboard() {
   const handleCreateArtist = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/admin/artists', newArtist);
+      const formData = new FormData();
+      formData.append('name', newArtist.name);
+      formData.append('email', newArtist.email);
+      formData.append('password', newArtist.password);
+      formData.append('bio', newArtist.bio);
+      formData.append('custom_order_price', newArtist.custom_order_price);
+      if (artistImageFile) {
+        formData.append('image', artistImageFile);
+      }
+
+      await api.post('/admin/artists', formData);
       alert('Artist created successfully!');
-      setNewArtist({ name: '', email: '', password: '', bio: '', custom_order_price: '', profile_image_url: '' });
+      setNewArtist({ name: '', email: '', password: '', bio: '', custom_order_price: '' });
+      setArtistImageFile(null);
       loadArtists();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Error creating artist');
@@ -248,8 +260,16 @@ export default function AdminDashboard() {
               <input type="text" placeholder="Name" required className="w-full bg-gray-900 border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-brand-gold" value={newArtist.name} onChange={e => setNewArtist({...newArtist, name: e.target.value})} />
               <input type="email" placeholder="Email" required className="w-full bg-gray-900 border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-brand-gold" value={newArtist.email} onChange={e => setNewArtist({...newArtist, email: e.target.value})} />
               <input type="password" placeholder="Password" required className="w-full bg-gray-900 border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-brand-gold" value={newArtist.password} onChange={e => setNewArtist({...newArtist, password: e.target.value})} />
-              <input type="text" placeholder="Profile Image URL" className="w-full bg-gray-900 border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-brand-gold" value={newArtist.profile_image_url} onChange={e => setNewArtist({...newArtist, profile_image_url: e.target.value})} />
               <input type="number" placeholder="Base Custom Order Price ($)" required className="w-full bg-gray-900 border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-brand-gold" value={newArtist.custom_order_price} onChange={e => setNewArtist({...newArtist, custom_order_price: e.target.value})} />
+              
+              <div className="w-full bg-gray-900 border border-gray-700 p-4 rounded text-white flex flex-col space-y-4">
+                <label className="text-gray-400 text-xs uppercase tracking-widest">Profile Image (Optional)</label>
+                <input type="file" accept="image/*" className="focus:outline-none focus:border-brand-gold file:bg-brand-gold file:border-none file:px-4 file:py-2 file:text-brand-dark file:rounded file:cursor-pointer hover:file:bg-brand-champagne transition" onChange={e => setArtistImageFile(e.target.files ? e.target.files[0] : null)} />
+                {artistImageFile && (
+                  <img src={URL.createObjectURL(artistImageFile)} alt="preview" className="w-24 h-24 object-cover rounded-full shadow-md mt-2" />
+                )}
+              </div>
+
               <textarea placeholder="Biography" required className="w-full bg-gray-900 border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:border-brand-gold h-24" value={newArtist.bio} onChange={e => setNewArtist({...newArtist, bio: e.target.value})}></textarea>
               <button type="submit" className="w-full py-3 bg-brand-gold text-brand-dark font-bold rounded hover:bg-brand-champagne transition uppercase tracking-widest text-sm">Create Artist</button>
             </form>

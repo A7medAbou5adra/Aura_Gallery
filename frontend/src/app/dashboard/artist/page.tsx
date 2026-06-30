@@ -11,16 +11,29 @@ import { useState } from 'react';
 export default function ArtistDashboard() {
   const dispatch = useDispatch<AppDispatch>();
   const [showMintForm, setShowMintForm] = useState(false);
-  const [newArt, setNewArt] = useState({ title: '', description: '', price: '', image_url: '' });
+  const [newArt, setNewArt] = useState({ title: '', description: '', price: '' });
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const handleMint = (e: React.FormEvent) => {
     e.preventDefault();
-    dispatch(createArtwork({ ...newArt, price: Number(newArt.price) }))
+    if (!imageFile) {
+      alert('Please select an image file first.');
+      return;
+    }
+    
+    const formData = new FormData();
+    formData.append('title', newArt.title);
+    formData.append('description', newArt.description);
+    formData.append('price', newArt.price);
+    formData.append('image', imageFile);
+
+    dispatch(createArtwork(formData))
       .unwrap()
       .then(() => {
         alert('Artwork minted successfully!');
         setShowMintForm(false);
-        setNewArt({ title: '', description: '', price: '', image_url: '' });
+        setNewArt({ title: '', description: '', price: '' });
+        setImageFile(null);
       })
       .catch(err => alert(err));
   };
@@ -57,7 +70,15 @@ export default function ArtistDashboard() {
             <form onSubmit={handleMint} className="space-y-4 max-w-2xl">
               <input type="text" placeholder="Title" required className="w-full bg-gray-900 border border-gray-700 text-white px-4 py-3 rounded focus:outline-none focus:border-brand-gold" value={newArt.title} onChange={e => setNewArt({...newArt, title: e.target.value})} />
               <input type="number" placeholder="Price ($)" required className="w-full bg-gray-900 border border-gray-700 text-white px-4 py-3 rounded focus:outline-none focus:border-brand-gold" value={newArt.price} onChange={e => setNewArt({...newArt, price: e.target.value})} />
-              <input type="text" placeholder="High-Res Image URL" required className="w-full bg-gray-900 border border-gray-700 text-white px-4 py-3 rounded focus:outline-none focus:border-brand-gold" value={newArt.image_url} onChange={e => setNewArt({...newArt, image_url: e.target.value})} />
+              
+              <div className="w-full bg-gray-900 border border-gray-700 p-4 rounded text-white flex flex-col space-y-4">
+                <label className="text-gray-400 text-xs uppercase tracking-widest">High-Res Image</label>
+                <input type="file" accept="image/*" required className="focus:outline-none focus:border-brand-gold file:bg-brand-gold file:border-none file:px-4 file:py-2 file:text-brand-dark file:rounded file:cursor-pointer hover:file:bg-brand-champagne transition" onChange={e => setImageFile(e.target.files ? e.target.files[0] : null)} />
+                {imageFile && (
+                  <img src={URL.createObjectURL(imageFile)} alt="preview" className="w-48 h-48 object-cover rounded shadow-md mt-2" />
+                )}
+              </div>
+
               <textarea placeholder="Description" required className="w-full bg-gray-900 border border-gray-700 text-white px-4 py-3 rounded focus:outline-none focus:border-brand-gold h-32" value={newArt.description} onChange={e => setNewArt({...newArt, description: e.target.value})}></textarea>
               <button type="submit" className="px-8 py-3 bg-brand-gold text-brand-dark font-bold uppercase tracking-widest text-sm hover:bg-brand-champagne transition shadow-[0_0_15px_rgba(212,175,55,0.4)]">Publish to Gallery</button>
             </form>

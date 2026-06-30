@@ -76,7 +76,11 @@ const getArtworkById = async (req, res, next) => {
 
 const createArtwork = async (req, res, next) => {
   try {
-    const { title, description, price, image_url } = req.body;
+    const { title, description, price } = req.body;
+    let image_url = req.body.image_url; // fallback if any
+    if (req.file) {
+      image_url = '/uploads/' + req.file.filename;
+    }
     const artist_id = req.user.id;
 
     const result = await db.query(

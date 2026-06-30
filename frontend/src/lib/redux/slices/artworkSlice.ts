@@ -45,7 +45,7 @@ export const purchaseArtwork = createAsyncThunk('artworks/purchase', async (artw
   }
 });
 
-export const createArtwork = createAsyncThunk('artworks/create', async (artworkData: { title: string, description: string, price: number, image_url: string }, { rejectWithValue }) => {
+export const createArtwork = createAsyncThunk('artworks/create', async (artworkData: any, { rejectWithValue }) => {
   try {
     const { data } = await api.post('/artworks', artworkData);
     return data;

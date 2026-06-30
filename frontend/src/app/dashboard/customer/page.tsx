@@ -15,13 +15,13 @@ export default function CustomerDashboard() {
   
   const [profile, setProfile] = useState<any>(null);
   const [editingProfile, setEditingProfile] = useState(false);
-  const [profileImage, setProfileImage] = useState('');
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   
   const loadProfile = async () => {
     try {
       const { data } = await api.get('/users/profile');
       setProfile(data);
-      setProfileImage(data.profile_image_url || '');
+      setProfile(data);
     } catch (err) {
       console.error(err);
     }
@@ -29,9 +29,14 @@ export default function CustomerDashboard() {
 
   const saveProfile = async () => {
     try {
-      await api.put('/users/profile', { profile_image_url: profileImage });
+      const formData = new FormData();
+      if (profileImageFile) {
+        formData.append('image', profileImageFile);
+      }
+      await api.put('/users/profile', formData);
       alert('Profile updated!');
       setEditingProfile(false);
+      setProfileImageFile(null);
       loadProfile();
     } catch (err) {
       alert('Error updating profile');
@@ -58,7 +63,9 @@ export default function CustomerDashboard() {
           
           <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-8 z-10 w-full">
             <div className="relative group">
-              {profile?.profile_image_url ? (
+              {profileImageFile ? (
+                <img src={URL.createObjectURL(profileImageFile)} alt="preview" className="w-32 h-32 rounded-full object-cover border-2 border-brand-gold shadow-[0_0_15px_rgba(212,175,55,0.4)]" />
+              ) : profile?.profile_image_url ? (
                 <img src={profile.profile_image_url} alt={user.name} className="w-32 h-32 rounded-full object-cover border-2 border-brand-gold shadow-[0_0_15px_rgba(212,175,55,0.4)]" />
               ) : (
                 <div className="w-32 h-32 rounded-full bg-gray-900 border-2 border-brand-gold flex items-center justify-center text-brand-gold text-4xl font-serif">
@@ -67,7 +74,7 @@ export default function CustomerDashboard() {
               )}
               {editingProfile && (
                 <div className="absolute inset-0 bg-black/80 rounded-full flex items-center justify-center">
-                  <span className="text-[10px] text-white uppercase tracking-widest text-center px-2">Image URL below</span>
+                  <span className="text-[10px] text-white uppercase tracking-widest text-center px-2">Select Image below</span>
                 </div>
               )}
             </div>
@@ -87,7 +94,7 @@ export default function CustomerDashboard() {
 
               {editingProfile ? (
                 <div className="space-y-3 max-w-md mx-auto md:mx-0">
-                  <input type="text" placeholder="Profile Image URL" className="w-full bg-gray-900 border border-gray-700 text-white px-3 py-2 rounded text-sm focus:border-brand-gold focus:outline-none" value={profileImage} onChange={e => setProfileImage(e.target.value)} />
+                  <input type="file" accept="image/*" className="w-full text-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-brand-gold file:text-brand-dark hover:file:bg-brand-champagne cursor-pointer" onChange={e => setProfileImageFile(e.target.files ? e.target.files[0] : null)} />
                   <div className="flex space-x-2">
                     <button onClick={saveProfile} className="flex-1 bg-brand-gold text-brand-dark py-2 text-xs font-bold uppercase tracking-widest rounded hover:bg-brand-champagne transition">Save</button>
                     <button onClick={() => setEditingProfile(false)} className="flex-1 bg-gray-800 text-gray-300 py-2 text-xs font-bold uppercase tracking-widest rounded hover:bg-gray-700 transition">Cancel</button>
