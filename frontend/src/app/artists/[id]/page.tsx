@@ -89,9 +89,12 @@ export default function ArtistProfile() {
           </div>
           <div className="bg-gray-900 p-6 rounded-lg border border-gray-700 min-w-[250px] text-center shadow-lg">
             <h3 className="text-brand-gold uppercase tracking-widest text-sm mb-4">Commission Availability</h3>
-            {profile.custom_order_price ? (
+            {currentProfile.commissions_open ? (
               <>
-                <p className="text-3xl font-serif text-white mb-4">${Number(profile.custom_order_price).toLocaleString()}</p>
+                <p className="text-green-500 pb-2 uppercase tracking-widest text-xs font-bold">Commissions Open</p>
+                {profile.custom_order_price && (
+                  <p className="text-3xl font-serif text-white mb-4">${Number(profile.custom_order_price).toLocaleString()}</p>
+                )}
                 <button className="w-full py-3 bg-brand-gold text-brand-dark font-bold hover:bg-brand-champagne transition rounded shadow-[0_0_15px_rgba(212,175,55,0.3)]">
                   Request Custom Order
                 </button>

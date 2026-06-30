@@ -16,6 +16,7 @@ export interface ArtistProfileData {
   profile: Artist;
   availableArtworks: Artwork[];
   soldArtworks: Artwork[];
+  commissions_open?: boolean;
 }
 
 interface ArtistState {

@@ -31,10 +31,20 @@ const getArtistProfile = async (req, res, next) => {
     const availableArtworks = await db.query('SELECT * FROM artworks WHERE artist_id = $1 AND status = $2', [artistId, 'available']);
     const soldArtworks = await db.query('SELECT * FROM artworks WHERE artist_id = $1 AND status = $2', [artistId, 'sold']);
 
+    // Condition 1: Sold MORE than 3 artworks
+    const hasSoldMoreThan3 = soldArtworks.rows.length > 3;
+
+    // Condition 2: At least one artwork entered into an auction (either currently 'auction' or has an auction end time)
+    const auctionRes = await db.query("SELECT COUNT(*) FROM artworks WHERE artist_id = $1 AND (status = 'auction' OR auction_ends_at IS NOT NULL)", [artistId]);
+    const hasAuction = parseInt(auctionRes.rows[0].count, 10) > 0;
+
+    const commissions_open = hasSoldMoreThan3 && hasAuction;
+
     res.json({
       profile: artistRes.rows[0],
       availableArtworks: availableArtworks.rows,
       soldArtworks: soldArtworks.rows,
+      commissions_open,
     });
   } catch (error) {
     next(error);
